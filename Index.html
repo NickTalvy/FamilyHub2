@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Family Command Center</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header class="glass-card header">
+            <div class="clock-section">
+                <p id="greeting">Good Morning</p>
+                <h1 id="clock">00:00</h1>
+                <div class="date-row">
+                    <span id="day-name">Monday</span>
+                    <span class="divider">|</span>
+                    <span id="date-full">January 1</span>
+                </div>
+            </div>
+            <div class="family-photo-container" onclick="document.getElementById('photo-input').click()">
+                <img id="family-photo" src="" alt="Family Photo" style="display:none;">
+                <div id="photo-placeholder">Tap to Add Photo</div>
+                <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+            </div>
+            <div class="weather-widget-container">
+                <a class="weatherwidget-io" href="https://forecast7.com/en/29d99n81d68/green-cove-springs/?unit=us" data-label_1="GREEN COVE SPRING" data-label_2="WEATHER" data-font="Roboto" data-icons="Climacons Animated" data-mode="Current" data-theme="pure" data-basecolor="rgba(0,0,0,0)" data-textcolor="#ffffff">WEATHER</a>
+            </div>
+            <div class="history-section">
+                <h3>Activity Log</h3>
+                <div id="history-list">
+                    <div class="history-item empty">No recent activity</div>
+                </div>
+            </div>
+        </header>
+
+        <section class="glass-card calendar-container">
+            <div class="calendar-wrapper">
+                <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FNew_York&showPrint=0&showNav=0&showTabs=0&showCalendars=0&showTz=0&showTitle=0&src=bnRhbHZ5QGdtYWlsLmNvbQ&src=ZmFtaWx5MTI5MTM4MDk5MDIxMTE5NDA4OTNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=c2FyYWhzdGVwaGVuczU2N0BnbWFpbC5jb20&color=%23039be5&color=%23ef6c00&color=%237986cb"></iframe>
+            </div>
+        </section>
+
+        <div class="sidebar-right">
+            <aside class="glass-card notes-section">
+                <div class="notes-header">
+                    <h2>Tasks & Projects</h2>
+                    <button id="add-note-btn" class="icon-btn">+</button>
+                </div>
+                <div id="notes-container"></div>
+            </aside>
+            <aside class="glass-card chores-section">
+                <div class="notes-header"><h2>Star Bank</h2></div>
+                <div id="rewards-bank"></div>
+                <div id="chores-container"></div>
+                <div class="prize-header" style="margin-top: 15px;">
+                    <h2>Prize Menu</h2>
+                </div>
+                <div id="prize-menu"></div>
+            </aside>
+        </div>
+    </div>
+
+    <div id="redeem-modal" class="modal-overlay" style="display:none;">
+        <div class="glass-card modal-content" id="modal-box">
+            <h3 id="modal-prize-name">Redeem Prize</h3>
+            <div id="modal-body-content"></div>
+            <button class="icon-btn cancel-btn" onclick="closeModal()">✕</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
+    </script>
+</body>
+</html>
