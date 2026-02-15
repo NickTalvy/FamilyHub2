@@ -8,6 +8,7 @@
 </head>
 <body>
     <div class="dashboard">
+        
         <header class="glass-card header">
             <div class="clock-section">
                 <p id="greeting">Good Morning</p>
@@ -18,14 +19,17 @@
                     <span id="date-full">January 1</span>
                 </div>
             </div>
+
             <div class="family-photo-container" onclick="document.getElementById('photo-input').click()">
                 <img id="family-photo" src="" alt="Family Photo" style="display:none;">
                 <div id="photo-placeholder">Tap to Add Photo</div>
                 <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhoto(this)">
             </div>
+
             <div class="weather-widget-container">
-                <a class="weatherwidget-io" href="https://forecast7.com/en/29d99n81d68/green-cove-springs/?unit=us" data-label_1="GREEN COVE SPRING" data-label_2="WEATHER" data-font="Roboto" data-icons="Climacons Animated" data-mode="Current" data-theme="pure" data-basecolor="rgba(0,0,0,0)" data-textcolor="#ffffff">WEATHER</a>
+                <a class="weatherwidget-io" href="https://forecast7.com/en/29d99n81d68/green-cove-springs/?unit=us" data-label_1="GREEN COVE SPRINGS" data-label_2="WEATHER" data-font="Roboto" data-icons="Climacons Animated" data-mode="Current" data-theme="pure" data-basecolor="rgba(0,0,0,0)" data-textcolor="#ffffff">WEATHER</a>
             </div>
+
             <div class="history-section">
                 <h3>Activity Log</h3>
                 <div id="history-list">
@@ -48,6 +52,7 @@
                 </div>
                 <div id="notes-container"></div>
             </aside>
+
             <aside class="glass-card chores-section">
                 <div class="notes-header"><h2>Star Bank</h2></div>
                 <div id="rewards-bank"></div>
