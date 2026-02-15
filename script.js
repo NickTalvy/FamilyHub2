@@ -109,23 +109,42 @@ window.adjustPoints = (name, pts, choreName) => {
 
 window.openRedeemModal = (name, cost) => {
     activePrize = { name, cost };
+    const modalBox = document.getElementById('modal-box');
+    modalBox.className = 'glass-card modal-content'; 
     document.getElementById('redeem-modal').style.display = 'flex';
     document.getElementById('modal-prize-name').innerText = `Redeem ${name}`;
     document.getElementById('modal-body-content').innerHTML = `
-        <p>Who is claiming?</p>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
-            ${kidsNames.map(kid => `<button class="point-btn-sm" onclick="confirmRedeem('${kid}')">${kid}</button>`).join('')}
+        <p style="margin-bottom:20px;">Who is claiming for <strong>${cost}★</strong>?</p>
+        <div style="display:flex; gap:15px; justify-content:center;">
+            ${kidsNames.map(kid => `<button class="point-btn-sm" style="min-width:100px; padding:12px;" onclick="confirmRedeem('${kid}')">${kid}</button>`).join('')}
         </div>
     `;
 };
 
 window.confirmRedeem = (name) => {
+    const modalBox = document.getElementById('modal-box');
+    const content = document.getElementById('modal-body-content');
+    
     if (kidData[name] >= activePrize.cost) {
         kidData[name] -= activePrize.cost;
-        addHistory(name, `redeemed ${activePrize.name}`, 'redeem');
+        addHistory(name, `claimed ${activePrize.name} (-${activePrize.cost}★)`, 'redeem');
         saveRewards();
-        closeModal();
-    } else { alert("Not enough stars!"); }
+        modalBox.classList.add('success');
+        content.innerHTML = `
+            <h2 style="color:#48bb78; margin:10px 0;">SUCCESS!</h2>
+            <p>Enjoy your <strong>${activePrize.name}</strong>, ${name}!</p>
+            <button class="point-btn-sm" style="margin-top:20px;" onclick="closeModal()">Awesome</button>
+        `;
+    } else { 
+        modalBox.classList.add('error');
+        const needed = activePrize.cost - kidData[name];
+        content.innerHTML = `
+            <h2 style="color:#f56565; margin:10px 0;">NOT ENOUGH STARS</h2>
+            <p>Sorry ${name}, you still need <strong>${needed} more stars</strong> for this prize.</p>
+            <button class="point-btn-sm" style="margin-top:20px;" onclick="closeModal()">Back to Work!</button>
+        `;
+        setTimeout(() => modalBox.classList.remove('error'), 500);
+    }
 };
 
 window.closeModal = () => { document.getElementById('redeem-modal').style.display = 'none'; };
@@ -167,11 +186,7 @@ function renderNotes() {
     `}).join('');
 }
 
-window.startTyping = (id) => {
-    editingId = id;
-    // Don't re-render here or the keyboard will close
-};
-
+window.startTyping = (id) => { editingId = id; };
 window.toggleEdit = (id, event) => {
     if (event.target.tagName === 'SELECT' || event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.classList.contains('complete-circle')) return;
     editingId = (editingId === id) ? null : id;
