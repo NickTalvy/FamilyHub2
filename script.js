@@ -22,31 +22,20 @@ const prizes = [
     { name: "Money", cost: 250 }
 ];
 
-// Data Persistence: Load from local storage or set defaults
 let notes = JSON.parse(localStorage.getItem('family_notes')) || [];
 let kidData = JSON.parse(localStorage.getItem('kid_points')) || { "Charlotte": 0, "Collin": 0 };
 let history = JSON.parse(localStorage.getItem('family_history')) || [];
 let activePrize = null;
+let editingId = null;
 
-// --- CLOCK & GREETING ---
 function updateDashboard() {
     const now = new Date();
-    const hours = now.getHours();
-    
     document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     document.getElementById('day-name').innerText = now.toLocaleDateString([], { weekday: 'long' });
     document.getElementById('date-full').innerText = now.toLocaleDateString([], { month: 'long', day: 'numeric' });
-
-    let greeting = "Good Evening";
-    if (hours < 12) greeting = "Good Morning";
-    else if (hours < 17) greeting = "Good Afternoon";
-    document.getElementById('greeting').innerText = greeting;
-
-    if (hours >= 22 || hours < 6) document.body.classList.add('night-mode');
-    else document.body.classList.remove('night-mode');
+    renderNotes(); 
 }
 
-// --- PHOTO LOGIC ---
 window.handlePhoto = (input) => {
     const reader = new FileReader();
     reader.onload = e => {
@@ -59,16 +48,14 @@ window.handlePhoto = (input) => {
 function displayPhoto(url) {
     if(!url) return;
     const img = document.getElementById('family-photo');
-    img.src = url; 
-    img.style.display = 'block';
+    img.src = url; img.style.display = 'block';
     document.getElementById('photo-placeholder').style.display = 'none';
 }
 
-// --- ACTIVITY LOG LOGIC ---
 function addHistory(name, action, type) {
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     history.unshift({ name, action, type, timestamp: timeStr });
-    if (history.length > 10) history.pop(); // Keep log small
+    if (history.length > 10) history.pop();
     localStorage.setItem('family_history', JSON.stringify(history));
     renderHistory();
 }
@@ -83,9 +70,7 @@ function renderHistory() {
     `).join('') : '<div class="history-item empty">No recent activity</div>';
 }
 
-// --- STAR BANK & CHORE LOGIC ---
 function renderRewards() {
-    // Render the Bank Totals
     document.getElementById('rewards-bank').innerHTML = Object.entries(kidData).map(([name, pts]) => `
         <div class="kid-stat">
             <div style="font-size:0.6rem; color: var(--accent-color); font-weight:bold;">${name.toUpperCase()}</div>
@@ -93,14 +78,10 @@ function renderRewards() {
         </div>
     `).join('');
 
-    // Render Chores in Single Row Layout
     const sorted = [...dailyChores].sort((a, b) => a.points - b.points);
     document.getElementById('chores-container').innerHTML = sorted.map(chore => `
         <div class="chore-item">
-            <div class="chore-info">
-                <span class="chore-name">${chore.name}</span>
-                <span class="chore-pts-value">${chore.points}★</span>
-            </div>
+            <div class="chore-info"><span class="chore-name">${chore.name}</span> <span class="chore-pts-value">${chore.points}★</span></div>
             <div class="btn-group-row">
                 ${kidsNames.map(name => `
                     <div class="kid-control-unit">
@@ -112,11 +93,9 @@ function renderRewards() {
         </div>
     `).join('');
 
-    // Render Prize Menu
     document.getElementById('prize-menu').innerHTML = prizes.map(p => `
         <div class="prize-item" onclick="openRedeemModal('${p.name}', ${p.cost})">
-            <div>${p.name}</div>
-            <div style="color:#FFD700; font-weight:bold;">${p.cost}★</div>
+            <div>${p.name}</div><div style="color:#FFD700; font-weight:bold;">${p.cost}★</div>
         </div>
     `).join('');
 }
@@ -128,19 +107,16 @@ window.adjustPoints = (name, pts, choreName) => {
     saveRewards(); 
 };
 
-// --- REDEMPTION MODAL LOGIC ---
 window.openRedeemModal = (name, cost) => {
     activePrize = { name, cost };
-    const modal = document.getElementById('redeem-modal');
-    document.getElementById('modal-box').className = 'glass-card modal-content';
+    document.getElementById('redeem-modal').style.display = 'flex';
     document.getElementById('modal-prize-name').innerText = `Redeem ${name}`;
     document.getElementById('modal-body-content').innerHTML = `
-        <p>Who is claiming for ${cost}★?</p>
-        <div style="display:flex; gap:15px; justify-content:center; margin-top:20px;">
-            ${kidsNames.map(kid => `<button class="point-btn-sm" style="padding:12px; min-width:100px;" onclick="confirmRedeem('${kid}')">${kid}</button>`).join('')}
+        <p>Who is claiming?</p>
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
+            ${kidsNames.map(kid => `<button class="point-btn-sm" onclick="confirmRedeem('${kid}')">${kid}</button>`).join('')}
         </div>
     `;
-    modal.style.display = 'flex';
 };
 
 window.confirmRedeem = (name) => {
@@ -148,68 +124,69 @@ window.confirmRedeem = (name) => {
         kidData[name] -= activePrize.cost;
         addHistory(name, `redeemed ${activePrize.name}`, 'redeem');
         saveRewards();
-        document.getElementById('modal-body-content').innerHTML = `
-            <h2 style="color:#48bb78; margin:10px 0;">SUCCESS!</h2>
-            <p>${name} claimed <strong>${activePrize.name}</strong></p>
-            <button class="point-btn-sm" style="margin-top:15px; width:100%;" onclick="closeModal()">AWESOME!</button>
-        `;
-    } else {
-        document.getElementById('modal-box').classList.add('error');
-        const gap = activePrize.cost - kidData[name];
-        document.getElementById('modal-body-content').innerHTML = `
-            <h2 style="color:#ff5555; margin:10px 0;">NOT ENOUGH!</h2>
-            <p>${name} needs <span style="color:#FFD700; font-weight:bold;">${gap} more★</span></p>
-            <button class="point-btn-sm" style="margin-top:15px; width:100%; background:#ff5555; box-shadow: 0 4px 0 #742a2a;" onclick="closeModal()">BACK TO WORK</button>
-        `;
-    }
+        closeModal();
+    } else { alert("Not enough stars!"); }
 };
 
 window.closeModal = () => { document.getElementById('redeem-modal').style.display = 'none'; };
 
-// --- STICKY NOTES LOGIC ---
+// --- TASKS LOGIC ---
 document.getElementById('add-note-btn').onclick = () => {
-    notes.push({ id: Date.now(), text: '', assignee: 'Select' });
+    const id = Date.now();
+    notes.push({ id: id, text: '', assignee: 'Select', dueDateTime: '' });
+    editingId = id;
     saveNotes();
 };
 
 function renderNotes() {
     const container = document.getElementById('notes-container');
-    container.innerHTML = notes.map(n => `
-        <div class="sticky-note assignee-${n.assignee}">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <select class="assignee-picker" style="background:rgba(0,0,0,0.2); border:none; color:white; font-size:0.7rem;" onchange="updateNote(${n.id}, 'assignee', this.value); renderNotes();">
+    const now = new Date();
+    container.innerHTML = notes.map(n => {
+        const isEditing = editingId === n.id;
+        const dueDate = n.dueDateTime ? new Date(n.dueDateTime) : null;
+        const isOverdue = dueDate && dueDate < now;
+        const formattedDate = dueDate ? dueDate.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
+        
+        return `
+        <div class="sticky-note assignee-${n.assignee} ${isEditing ? 'editing' : ''} ${isOverdue ? 'is-overdue' : ''}" onclick="toggleEdit(${n.id}, event)">
+            <div class="task-top-row">
+                <span class="assignee-label" style="display: ${isEditing ? 'none' : 'block'}">${n.assignee !== 'Select' ? n.assignee : ''}</span>
+                <select class="assignee-picker" onchange="updateNote(${n.id}, 'assignee', this.value); stopEditing();">
                     ${allFamily.map(name => `<option value="${name}" ${n.assignee===name?'selected':''}>${name}</option>`).join('')}
                 </select>
-                <div style="width:18px; height:18px; border:2px solid white; border-radius:50%; cursor:pointer;" onclick="completeNote(${n.id})"></div>
+                <div class="complete-circle" onclick="completeNote(${n.id}, event)">✓</div>
             </div>
-            <textarea oninput="updateNote(${n.id}, 'text', this.value)" rows="2" placeholder="Task details...">${n.text}</textarea>
+            <textarea class="task-textarea" onfocus="startTyping(${n.id})" oninput="updateNote(${n.id}, 'text', this.value)" rows="2" placeholder="Task details...">${n.text}</textarea>
+            <div class="task-footer">
+                <div class="due-display">
+                    ${!isEditing && formattedDate ? `<div class="due-badge"><span>⏰</span> ${formattedDate}</div>` : ''}
+                    <input type="datetime-local" class="due-date-input" value="${n.dueDateTime || ''}" onchange="updateNote(${n.id}, 'dueDateTime', this.value); renderNotes();" style="display: ${isEditing ? 'block' : 'none'}">
+                </div>
+            </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
+window.startTyping = (id) => {
+    editingId = id;
+    // Don't re-render here or the keyboard will close
+};
+
+window.toggleEdit = (id, event) => {
+    if (event.target.tagName === 'SELECT' || event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.classList.contains('complete-circle')) return;
+    editingId = (editingId === id) ? null : id;
+    renderNotes();
+};
+
+window.stopEditing = () => { editingId = null; renderNotes(); };
 window.updateNote = (id, field, value) => { 
     const note = notes.find(n => n.id === id);
-    if (note) {
-        note[field] = value; 
-        localStorage.setItem('family_notes', JSON.stringify(notes)); 
-    }
+    if (note) { note[field] = value; localStorage.setItem('family_notes', JSON.stringify(notes)); }
 };
-
-window.completeNote = (id) => { 
-    notes = notes.filter(n => n.id !== id); 
-    saveNotes(); 
-};
-
-// --- GLOBAL SAVING FUNCTIONS ---
+window.completeNote = (id, event) => { if (event) event.stopPropagation(); notes = notes.filter(n => n.id !== id); saveNotes(); };
 function saveNotes() { localStorage.setItem('family_notes', JSON.stringify(notes)); renderNotes(); }
 function saveRewards() { localStorage.setItem('kid_points', JSON.stringify(kidData)); renderRewards(); }
 
-// --- INITIALIZATION ---
-setInterval(updateDashboard, 1000);
-updateDashboard(); 
-renderRewards(); 
-renderNotes(); 
-renderHistory();
-
-// Load saved photo if it exists
+setInterval(updateDashboard, 60000); 
+updateDashboard(); renderRewards(); renderNotes(); renderHistory();
 if(localStorage.getItem('saved_photo')) displayPhoto(localStorage.getItem('saved_photo'));
